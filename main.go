@@ -1,25 +1,28 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"os"
 )
 
-//TIP To run your code, right-click the code and select <b>Run</b>. Alternatively, click
-// the <icon src="AllIcons.Actions.Execute"/> icon in the gutter and select the <b>Run</b> menu item from here.
-
 func main() {
-	//TIP Press <shortcut actionId="ShowIntentionActions"/> when your caret is at the underlined or highlighted text
-	// to see how GoLand suggests fixing it.
-	s := "gopher"
-	fmt.Printf("Hello and welcome, %s!\n", s)
+	// Définir les options de la ligne de commande
+	filePath := flag.String("file", "", "Chemin vers le fichier binaire")
+	flag.Parse()
 
-	for i := 1; i <= 5; i++ {
-		//TIP You can try debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-		// for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>. To start your debugging session,
-		// right-click your code in the editor and select the <b>Debug</b> option.
-		fmt.Println("i =", 100/i)
+	if *filePath == "" {
+		fmt.Println("Veuillez spécifier un fichier binaire avec l'option -file")
+		os.Exit(1)
 	}
-}
 
-//TIP See GoLand help at <a href="https://www.jetbrains.com/help/go/">jetbrains.com/help/go/</a>.
-// Also, you can try interactive lessons for GoLand by selecting 'Help | Learn IDE Features' from the main menu.
+	// Charger la table de correspondance des opcodes
+	opcodeTable, err := loadOpcodeTable("opcodes.json")
+	if err != nil {
+		fmt.Printf("Erreur lors du chargement de la table des opcodes: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Appeler la fonction de décodage
+	decodeFile(*filePath, opcodeTable)
+}
