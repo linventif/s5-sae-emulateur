@@ -23,6 +23,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Appeler la fonction de décodage
+	// Appeler les fonctions de décodage et de désassemblage
 	decodeFile(*filePath, opcodeTable)
+	disassembleFile(*filePath, opcodeTable)
 }
