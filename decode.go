@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 )
 
@@ -15,7 +14,7 @@ type OpcodeTable map[string]string
 //
 //goland:noinspection GoDeprecation
 func loadOpcodeTable(filePath string) (OpcodeTable, error) {
-	data, err := ioutil.ReadFile(filePath)
+	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}
