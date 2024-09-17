@@ -11,13 +11,23 @@ Ce projet est un émulateur de processeur RISC-V écrit en Go. Il permet de déc
 
 ## Table des matières
 
+## Table des matières
+
 - [Introduction](#introduction)
 - [Structure du projet](#structure-du-projet)
 - [Déroulé de la création des éléments](#déroulé-de-la-création-des-éléments)
+    - [1. Création de la structure de base du projet](#1-création-de-la-structure-de-base-du-projet)
+    - [2. Lecture et compréhension de la spécification RISC-V](#2-lecture-et-compréhension-de-la-spécification-risc-v)
+    - [3. Développement de la fonction d'extraction d'opcode](#3-développement-de-la-fonction-dextraction-dopcode)
+    - [4. Création de la table de correspondance des opcodes](#4-création-de-la-table-de-correspondance-des-opcodes)
+    - [5. Développement de la fonction de décodage des instructions](#5-développement-de-la-fonction-de-décodage-des-instructions)
+    - [6. Développement de la fonction de désassemblage des instructions](#6-développement-de-la-fonction-de-désassemblage-des-instructions)
+    - [7. Intégration et tests](#7-intégration-et-tests)
 - [Décisions prises](#décisions-prises)
-- [Problèmes rencontrés](#problèmes-rencontrés)
-- [Utilisation](#utilisation)
-- [Contributeurs](#contributeurs)
+    - [1. Utilisation de Go](#1-utilisation-de-go)
+    - [2. Utilisation d'un fichier JSON pour la table des opcodes](#2-utilisation-dun-fichier-json-pour-la-table-des-opcodes)
+- [Conclusion](#conclusion)
+
 
 ## Introduction
 
@@ -80,15 +90,11 @@ Nous avons intégré toutes les fonctions développées dans le projet Go. Nous 
 
 ### 1. Utilisation de Go
 
-Nous avons choisi d'utiliser Go pour ce projet en raison de sa performance et de sa simplicité. Go est un langage compilé vers du code natif, ce qui est idéal pour un émulateur de processeur.
+Nous avons choisi d'utiliser Go pour ce projet en raison de sa performance et de sa simplicité. Go est un langage compilé vers du code natif, ce qui est idéal pour un émulateur de processeur. (selon nous)
 
 ### 2. Utilisation d'un fichier JSON pour la table des opcodes
 
 Nous avons décidé d'utiliser un fichier JSON pour stocker la table de correspondance des opcodes. Cela rend le code plus modulaire et facile à maintenir, car nous pouvons facilement ajouter ou modifier des opcodes sans toucher au code source.
-
-### 3. Structure modulaire
-
-Nous avons structuré le projet de manière modulaire en séparant les différentes parties du code dans des fichiers distincts. Cela rend le code plus lisible et plus facile à maintenir.
 
 ## Conclusion
 
