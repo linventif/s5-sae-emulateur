@@ -13,12 +13,29 @@ func main() {
 	flag.Parse()
 
 	if *help {
+		/*
+			Un décodeur d'instruction RISC-V RV32I
+
+			Utilisation: decode_riscv [OPTIONS] FICHIER_BIN
+
+			Arguments:
+			FICHIER_BIN Un fichier au format binaire contenant les instructions à décoder
+
+			Options:
+			-h Affiche ce message d'aide
+		*/
 		fmt.Println("Un désassembleur d'instructions RISC-V RV32I")
 		fmt.Println()
-		flag.Usage()
+		fmt.Println("Utilisation: decode_riscv [OPTIONS] FICHIER_BIN")
 		fmt.Println()
-		fmt.Println("Exemple:")
-		fmt.Println("  sae-emulateur -file program.bin")
+		fmt.Println("Arguments:")
+		fmt.Println("  FICHIER_BIN  Un fichier au format binaire contenant les instructions à décoder")
+		fmt.Println()
+		fmt.Println("Options:")
+		fmt.Println("  -h  Affiche ce message d'aide")
+		fmt.Println()
+		fmt.Println("Exemples:")
+		fmt.Println("  decode_riscv -file program.bin")
 		fmt.Println()
 		fmt.Println("Auteur:")
 		fmt.Println("  -Grégoire Launay--Bécue")
