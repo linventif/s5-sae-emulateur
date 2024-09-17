@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 )
 
@@ -13,7 +12,7 @@ type OpcodeTable map[string]string
 
 // Fonction pour lire le fichier JSON et charger la table de correspondance des opcodes
 func loadOpcodeTable(filePath string) (OpcodeTable, error) {
-	data, err := ioutil.ReadFile(filePath)
+	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}
@@ -25,11 +24,6 @@ func loadOpcodeTable(filePath string) (OpcodeTable, error) {
 	}
 
 	return table, nil
-}
-
-// Fonction pour extraire l'opcode d'une instruction
-func extractOpcode(inst uint32) uint32 {
-	return inst & 0x7F // Masque pour extraire les 7 bits de poids faible
 }
 
 // Fonction pour déterminer le type d'encodage à partir de l'opcode
