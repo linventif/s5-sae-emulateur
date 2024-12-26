@@ -28,24 +28,23 @@ func main() {
 		"/home/linventif/sae-emulateur/riscv-samples/assembly/zero_bss.bin",
 		"/home/linventif/sae-emulateur/riscv-samples/assembly/semihosting.bin",
 		// C test files - [5-6]
-		"/home/linventif/sae-emulateur/riscv-samples/C/crc/crd.bin",
+		"/home/linventif/sae-emulateur/riscv-samples/C/crc/crc.bin",
 		"/home/linventif/sae-emulateur/riscv-samples/C/md5/md5.bin",
 	}
 	var testOption = []string{
 		//"-m", "1024",
 		//"-d", "0",
-		testFile[1],
+		testFile[5],
 	}
 	os.Args = append(os.Args, testOption...)
 	debugMode = true
 
 	// default memory size & default memory value
 	var memorySize uint32 = 512 * 1024
-	var registerDefault uint32 = 0
+	var registerDefault uint32 = 0x100
 	var cpu CPUState
 	var memory []uint32
 	var startAddress uint32 = 0
-	var endAddress uint32 = 0
 
 	// extract options
 	for i, arg := range os.Args {
@@ -106,9 +105,6 @@ func main() {
 		}
 	}
 
-	// set end address
-	endAddress = offset * 4
-
 	// loop through memory and decode instructions
 	for {
 		// check if pc is out of memory bounds
@@ -116,9 +112,9 @@ func main() {
 			break
 		}
 
-		// check if program is finished
-		if cpu.pc == endAddress {
-			break
+		// handle step mode
+		if stepMode {
+			handleStepMode(&cpu, &memory, startAddress, registerDefault)
 		}
 
 		// decode instruction
@@ -126,11 +122,12 @@ func main() {
 		opcode, err := GetOpcodeFromInstruction(instruction)
 
 		if err == nil {
-			rtnString := opcode.Encoding.Decode(instruction, &cpu, &memory)
+			rtnString := opcode.Encoding.Decode(opcode, instruction, &cpu, &memory)
 			logDebug("DISAS", "%s", rtnString)
 		} else {
-			logDebug("DISAS", "%08x: %s\n", cpu.pc, err.Error())
+			//logDebug("DISAS", "%08x: %s\n", cpu.pc, err.Error())
 		}
+
 		cpu.pc += 4
 	}
 }

@@ -196,18 +196,14 @@ var Instructions = map[[4]uint32]Instruction{
 	{0b1110011, 0, 0, 0}: {
 		"ECALL",
 		func(cpu *CPUState, memory *[]uint32, args ...uint32) {
-			switch readRegister(cpu, 10) {
-			case 1:
-				fmt.Printf("%d", readRegister(cpu, 11))
-			case 10:
-				cpu.pc = 0
-			}
+			// Do nothing
 		},
 	},
 	{0b1110011, 0, 0, 1}: {
 		"EBREAK",
 		func(cpu *CPUState, memory *[]uint32, args ...uint32) {
-			cpu.pc = 0
+			stepMode = true
+			fmt.Println("Step by step mode enabled")
 		},
 	},
 	// JAL
@@ -346,128 +342,5 @@ func FindInstruction(instruction uint32, funct3 uint32, funct7 uint32, funct12 u
 	if instr, ok := Instructions[[4]uint32{opcode, funct3, funct7, funct12}]; ok {
 		return instr, nil
 	}
-	return Instruction{}, fmt.Errorf("instruction not found")
+	return Instruction{}, fmt.Errorf("instruction {opcode: %b, funct3: %b, funct7: %b, funct12: %b} not found", opcode, funct3, funct7, funct12)
 }
-
-//var instructionSet = map[uint32]interface{}{
-//	0b1100011: map[uint32]interface{}{
-//		0b000: "BEQ",
-//		0b001: "BNE",
-//		0b100: "BLT",
-//		0b101: "BGE",
-//		0b110: "BLTU",
-//		0b111: "BGEU",
-//	},
-//	0b0000011: map[uint32]interface{}{
-//		0b000: "LB",
-//		0b001: "LH",
-//		0b010: "LW",
-//		0b100: "LBU",
-//		0b101: "LHU",
-//	},
-//	0b0001111: map[uint32]interface{}{
-//		0b000: "FENCE",
-//	},
-//	0b0010011: map[uint32]interface{}{
-//		0b000: "ADDI",
-//		0b010: "SLTI",
-//		0b011: "SLTIU",
-//		0b100: "XORI",
-//		0b110: "ORI",
-//		0b111: "ANDI",
-//		0b001: "SLLI",
-//		0b101: map[uint32]string{
-//			0b0000000: "SRLI",
-//			0b0100000: "SRAI",
-//		},
-//	},
-//	0b1100111: "JALR",
-//	0b1110011: map[uint32]interface{}{
-//		0: map[uint32]interface{}{
-//			0: map[uint32]interface{}{
-//				0b000000000000: "ECALL",
-//				0b000000000001: "EBREAK",
-//			},
-//		},
-//	},
-//	0b1101111: "JAL",
-//	0b0110011: map[uint32]interface{}{
-//		0b000: map[uint32]string{
-//			0b0000000: "ADD",
-//			0b0100000: "SUB",
-//		},
-//		0b001: "SLL",
-//		0b010: "SLT",
-//		0b011: "SLTU",
-//		0b100: "XOR",
-//		0b101: map[uint32]string{
-//			0b0000000: "SRL",
-//			0b0100000: "SRA",
-//		},
-//		0b110: "OR",
-//		0b111: "AND",
-//	},
-//	0b0100011: map[uint32]interface{}{
-//		0b000: "SB",
-//		0b001: "SH",
-//		0b010: "SW",
-//	},
-//	0b0010111: "AUIPC",
-//	0b0110111: "LUI",
-//}
-//
-//func findInstruction(opcode uint32, funct3 *uint32, funct7 *uint32, funct12 *uint32) string {
-//	// Step 1: Find opcode
-//	if level1, ok := instructionSet[opcode]; ok {
-//		if str, ok := level1.(string); ok {
-//			return str // Instruction directly at opcode level
-//		}
-//
-//		// Step 2: Check funct3 if provided
-//		if funct3 != nil {
-//			if level2, ok := level1.(map[uint32]interface{})[*funct3]; ok {
-//				if str, ok := level2.(string); ok {
-//					return str // Instruction found at funct3 level
-//				}
-//
-//				// Step 3: Check funct7 if provided
-//				if funct7 != nil {
-//					switch level3 := level2.(type) {
-//					case map[uint32]interface{}:
-//						if level3Value, ok := level3[*funct7]; ok {
-//							if str, ok := level3Value.(string); ok {
-//								return str // Instruction found at funct7 level
-//							}
-//						}
-//					case map[uint32]string:
-//						if str, ok := level3[*funct7]; ok {
-//							return str // Instruction found at funct7 level (final string map)
-//						}
-//					default:
-//						return "Instruction not found"
-//					}
-//
-//					// Step 4: Check funct12 if provided
-//					if funct12 != nil {
-//						// Safely retrieve level3 from level2 using funct7
-//						if level3Map, ok := level2.(map[uint32]interface{}); ok {
-//							if level3, ok := level3Map[*funct7]; ok {
-//								// Level3 is a map[uint32]interface{}, drill down again
-//								if level3Map, ok := level3.(map[uint32]interface{}); ok {
-//									if level4, ok := level3Map[*funct12]; ok {
-//										if str, ok := level4.(string); ok {
-//											return str // Instruction found at funct12 level
-//										}
-//									}
-//								}
-//							}
-//						}
-//					}
-//
-//				}
-//			}
-//		}
-//	}
-//
-//	return "Instruction not found"
-//}
