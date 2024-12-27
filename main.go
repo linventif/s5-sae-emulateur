@@ -34,7 +34,7 @@ func main() {
 	var testOption = []string{
 		//"-m", "1024",
 		//"-d", "0",
-		testFile[5],
+		testFile[1],
 	}
 	os.Args = append(os.Args, testOption...)
 	debugMode = true
