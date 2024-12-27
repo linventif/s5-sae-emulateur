@@ -3,9 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	_ "os"
-	_ "strconv"
-	_ "strings"
 )
 
 var stepMode = false
