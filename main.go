@@ -41,7 +41,7 @@ func main() {
 
 	// default memory size & default memory value
 	var memorySize uint32 = 512 * 1024
-	var registerDefault uint32 = 0x100
+	var registerDefault uint32 = 0
 	var cpu CPUState
 	var memory []uint32
 	var startAddress uint32 = 0

@@ -134,7 +134,8 @@ var Instructions = map[[4]uint32]Instruction{
 		"SLTIU",
 		func(cpu *CPUState, memory *[]uint32, args ...uint32) {
 			rd, rs1, imm := args[0], args[1], args[2]
-			if readRegister(cpu, rs1) < imm {
+			signExtendedImm := uint32(int32(imm<<20) >> 20)
+			if readRegister(cpu, rs1) < signExtendedImm {
 				writeRegister(cpu, rd, 1)
 			} else {
 				writeRegister(cpu, rd, 0)
@@ -189,7 +190,8 @@ var Instructions = map[[4]uint32]Instruction{
 		func(cpu *CPUState, memory *[]uint32, args ...uint32) {
 			rd, rs1, imm := args[0], args[1], args[2]
 			writeRegister(cpu, rd, cpu.pc+4)
-			cpu.pc = (readRegister(cpu, rs1) + imm) & 0xFFFFFFFE
+			var targetAddress = readRegister(cpu, rs1) + imm
+			cpu.pc = targetAddress
 		},
 	},
 	// SYSTEM
@@ -300,7 +302,12 @@ var Instructions = map[[4]uint32]Instruction{
 		func(cpu *CPUState, memory *[]uint32, args ...uint32) {
 			rs1, rs2, imm := args[0], args[1], args[2]
 			address := readRegister(cpu, rs1) + imm
-			(*memory)[address] = uint32(readRegister(cpu, rs2) & 0xFF)
+			index := address / 4
+			offset := (address % 4) * 8
+			value := readRegister(cpu, rs2) & 0xFF
+
+			(*memory)[index] &= ^(uint32(0xFF) << offset) // Clear
+			(*memory)[index] |= uint32(value) << offset   // Insert
 		},
 	},
 	{0b0100011, 0b001, 0, 0}: {
@@ -308,7 +315,21 @@ var Instructions = map[[4]uint32]Instruction{
 		func(cpu *CPUState, memory *[]uint32, args ...uint32) {
 			rs1, rs2, imm := args[0], args[1], args[2]
 			address := readRegister(cpu, rs1) + imm
-			(*memory)[address] = uint32(readRegister(cpu, rs2) & 0xFFFF)
+			index := address / 4
+			offset := (address % 4) * 8
+			value := readRegister(cpu, rs2) & 0xFFFF
+
+			if offset <= 16 {
+				(*memory)[index] &= ^(uint32(0xFFFF) << offset)
+				(*memory)[index] |= uint32(value) << offset
+			} else {
+				lowBits := uint32(value & 0xFF)
+				highBits := uint32((value >> 8) & 0xFF)
+				(*memory)[index] &= ^(uint32(0xFF) << offset)
+				(*memory)[index] |= lowBits << offset
+				(*memory)[index+1] &= ^uint32(0xFF)
+				(*memory)[index+1] |= highBits
+			}
 		},
 	},
 	{0b0100011, 0b010, 0, 0}: {
@@ -316,7 +337,8 @@ var Instructions = map[[4]uint32]Instruction{
 		func(cpu *CPUState, memory *[]uint32, args ...uint32) {
 			rs1, rs2, imm := args[0], args[1], args[2]
 			address := readRegister(cpu, rs1) + imm
-			(*memory)[address] = readRegister(cpu, rs2)
+			index := address / 4
+			(*memory)[index] = readRegister(cpu, rs2)
 		},
 	},
 	// AU-IPC
@@ -324,6 +346,7 @@ var Instructions = map[[4]uint32]Instruction{
 		"AUIPC",
 		func(cpu *CPUState, memory *[]uint32, args ...uint32) {
 			rd, imm := args[0], args[1]
+			imm = imm << 12
 			writeRegister(cpu, rd, cpu.pc+imm)
 		},
 	},
@@ -332,6 +355,7 @@ var Instructions = map[[4]uint32]Instruction{
 		"LUI",
 		func(cpu *CPUState, memory *[]uint32, args ...uint32) {
 			rd, imm := args[0], args[1]
+			imm = imm << 12
 			writeRegister(cpu, rd, imm)
 		},
 	},

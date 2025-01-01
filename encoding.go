@@ -9,15 +9,24 @@ func decodeI(opcode Opcode, instruction uint32, cpu *CPUState, memory *[]uint32)
 	rs1 := (instruction >> 15) & 0x1F
 
 	funct3 := (instruction >> 12) & 0x7
+	funct7 := uint32(0)
 	funct12 := uint32(0)
 
+	if opcode.Type == "OP-IMM" && funct3 == 0b101 {
+		funct7 = instruction >> 25
+	}
 	if opcode.Type == "SYSTEM" {
 		funct12 = instruction >> 20
 	}
 
-	inst, err := FindInstruction(instruction, funct3, 0, funct12)
+	inst, err := FindInstruction(instruction, funct3, funct7, funct12)
 	if err == nil {
 		inst.Exec(cpu, memory, rd, rs1, imm)
+		if opcode.Type == "OP-IMM" {
+			return fmt.Sprintf("%s x%d, x%d, %d\n", inst.Name, rd, rs1, imm)
+		} else if opcode.Type == "SYSTEM" {
+			return fmt.Sprintf("%s x%d, %d\n", inst.Name, rd, imm)
+		}
 		return fmt.Sprintf("%s x%d, x%d, %d\n", inst.Name, rd, rs1, imm)
 	} else {
 		return fmt.Sprintf("%s\n", err.Error())
