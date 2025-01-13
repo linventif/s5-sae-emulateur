@@ -8,7 +8,7 @@ func TestInstructions(t *testing.T) {
 	var memorySize uint32 = 512 * 1024
 	var registerDefault uint32 = 0
 	var cpu CPUState
-	var memory []uint32
+	var memory Memory
 	var startAddress uint32 = 0
 
 	tests := []struct {
@@ -219,30 +219,30 @@ func TestInstructions(t *testing.T) {
 			instruction:  Instructions[[4]uint32{0b0100011, 0b000, 0, 0}],
 			args:         []uint32{1, 2, 4},               // SB x1, 4(x2) => memory[x2+4] = x1
 			defaultRegs:  map[uint32]uint32{1: 255, 2: 0}, // x1 = 255 (0xFF), x2 = 0
-			defaultMem:   map[uint32]uint32{0: 0},         // Initialisation mémoire
+			defaultMem:   map[uint32]uint32{0: 0},         // Initial memory
 			expectedPC:   0,
 			expectedRegs: map[uint32]uint32{},
-			expectedMem:  map[uint32]uint32{1: 0xFF000000}, // Byte écrit dans le 4e octet du mot mémoire
+			expectedMem:  map[uint32]uint32{1: 0xFF000000}, // Byte written in the 4th byte of the memory word
 		},
 		{
 			name:         "SH",
 			instruction:  Instructions[[4]uint32{0b0100011, 0b001, 0, 0}],
 			args:         []uint32{1, 2, 2},                  // SH x1, 2(x2) => memory[x2+2] = x1
 			defaultRegs:  map[uint32]uint32{1: 0xFFFF, 2: 0}, // x1 = 0xFFFF, x2 = 0
-			defaultMem:   map[uint32]uint32{0: 0},            // Initialisation mémoire
+			defaultMem:   map[uint32]uint32{0: 0},            // Initial memory
 			expectedPC:   0,
 			expectedRegs: map[uint32]uint32{},
-			expectedMem:  map[uint32]uint32{0: 0x00FFFF00}, // Halfword écrit dans les 2e et 3e octets
+			expectedMem:  map[uint32]uint32{0: 0x00FFFF00}, // Halfword written in the 2nd and 3rd bytes
 		},
 		{
 			name:         "SW",
 			instruction:  Instructions[[4]uint32{0b0100011, 0b010, 0, 0}],
 			args:         []uint32{1, 2, 4},                      // SW x1, 4(x2) => memory[x2+4] = x1
 			defaultRegs:  map[uint32]uint32{1: 0xDEADBEEF, 2: 0}, // x1 = 0xDEADBEEF, x2 = 0
-			defaultMem:   map[uint32]uint32{1: 0},                // Initialisation mémoire
+			defaultMem:   map[uint32]uint32{1: 0},                // Initial memory
 			expectedPC:   0,
 			expectedRegs: map[uint32]uint32{},
-			expectedMem:  map[uint32]uint32{1: 0xDEADBEEF}, // Word entier écrit à partir de l'index 1
+			expectedMem:  map[uint32]uint32{1: 0xDEADBEEF}, // Word written starting from index 1
 		},
 		// Load
 		{
@@ -425,7 +425,7 @@ func TestInstructions(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			initMemory(&memory, memorySize)
+			initMemory(&memory, memorySize, 0)
 			initCPUState(&cpu, startAddress, registerDefault)
 
 			for reg, value := range test.defaultRegs {
@@ -437,7 +437,7 @@ func TestInstructions(t *testing.T) {
 					t.Errorf("memory address %d out of bounds", addr)
 					continue
 				}
-				(memory)[addr] = value
+				writeMemory(&memory, addr, value)
 			}
 
 			test.instruction.Exec(&cpu, &memory, test.args...)
@@ -454,10 +454,9 @@ func TestInstructions(t *testing.T) {
 
 			for addr, expected := range test.expectedMem {
 				index := addr / 4
-				offset := (addr % 4) * 8
-				actual := ((memory)[index] >> offset) & 0xFF
+				actual := readMemory(&memory, index)
 				if actual != expected {
-					t.Errorf("expected memory[%d]=%d, got memory[%d]=%d", addr, expected, addr, actual)
+					t.Errorf("expected memory[%d]=%d, got %d", addr, expected, actual)
 				}
 			}
 		})

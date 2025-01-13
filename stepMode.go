@@ -8,7 +8,7 @@ import (
 var stepMode = false
 
 // x/4 0x10000
-func executeCommand(cpu *CPUState, memory *[]uint32, commands []string, startAddress uint32, defaultRegisterValue uint32) {
+func executeCommand(cpu *CPUState, memory *Memory, commands []string, startAddress uint32, defaultRegisterValue uint32) {
 	// if start with 'x/'
 	if len(commands) > 0 && commands[0][0:2] == "x/" {
 		var count uint32
@@ -16,19 +16,15 @@ func executeCommand(cpu *CPUState, memory *[]uint32, commands []string, startAdd
 		fmt.Sscanf(commands[0], "x/%d", &count)
 		fmt.Sscanf(commands[1], "0x%x", &address)
 		for i := uint32(0); i < count; i++ {
-			if address+i < uint32(len(*memory)) {
-				fmt.Printf("0x%08x: 0x%08x\n", address+i, (*memory)[address+i])
-			} else {
-				fmt.Println("Adresse hors mémoire.")
-			}
+			fmt.Printf("0x%08x: 0x%08x\n", address+i, readMemory(memory, address+i))
 		}
 	} else {
 		switch commands[0] {
 		case "step":
-			if cpu.pc/4 >= uint32(len(*memory)) {
+			if cpu.pc/4 >= lenMemory(memory) {
 				fmt.Println("PC hors limites mémoire.")
 			} else {
-				instruction := (*memory)[cpu.pc/4]
+				instruction := readMemory(memory, cpu.pc/4)
 				opcode, err := GetOpcodeFromInstruction(instruction)
 
 				if err == nil {
@@ -53,7 +49,7 @@ func executeCommand(cpu *CPUState, memory *[]uint32, commands []string, startAdd
 	}
 }
 
-func handleStepMode(cpu *CPUState, memory *[]uint32, startAddress uint32, defaultRegisterValue uint32) {
+func handleStepMode(cpu *CPUState, memory *Memory, startAddress uint32, defaultRegisterValue uint32) {
 	for stepMode {
 		// Affiche l'état des registres
 		fmt.Printf("PC: 0x%08x\n", cpu.pc)
@@ -62,8 +58,8 @@ func handleStepMode(cpu *CPUState, memory *[]uint32, startAddress uint32, defaul
 		}
 
 		// Affiche l'instruction
-		if cpu.pc/4 < uint32(len(*memory)) {
-			instruction := (*memory)[cpu.pc/4]
+		if cpu.pc/4 < uint32(lenMemory(memory)) {
+			instruction := readMemory(memory, cpu.pc/4)
 			opcode, err := GetOpcodeFromInstruction(instruction)
 			if err == nil {
 				rtnString := opcode.Encoding.Decode(opcode, instruction, cpu, memory)

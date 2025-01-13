@@ -43,7 +43,7 @@ func main() {
 	var memorySize uint32 = 512 * 1024
 	var registerDefault uint32 = 0
 	var cpu CPUState
-	var memory []uint32
+	var memory Memory
 	var startAddress uint32 = 0
 
 	// extract options
@@ -81,7 +81,7 @@ func main() {
 	}
 
 	// init memory and cpu state
-	initMemory(&memory, memorySize)
+	initMemory(&memory, memorySize, 0)
 	initCPUState(&cpu, startAddress, registerDefault)
 
 	// read binary file and load instructions into memory
@@ -96,11 +96,12 @@ func main() {
 			fmt.Printf("Error reading file: %v\n", err)
 			os.Exit(1)
 		}
-		if offset < uint32(len(memory)) {
-			memory[offset] = instruction
+
+		if offset < uint32(len(memory.data)) {
+			writeMemory(&memory, offset, instruction)
 			offset++
 		} else {
-			fmt.Printf("Binary file too large for memory, actual size: %d, requested size: %d\n", len(memory), offset)
+			fmt.Printf("Binary file too large for memory, actual size: %d, requested size: %d\n", len(memory.data), offset)
 			os.Exit(1)
 		}
 	}
@@ -108,8 +109,9 @@ func main() {
 	// loop through memory and decode instructions
 	for {
 		// check if pc is out of memory bounds
-		if cpu.pc/4 >= uint32(len(memory)) {
-			break
+		if cpu.pc/4 >= lenMemory(&memory) {
+			fmt.Println("PC out of memory bounds.")
+			os.Exit(1)
 		}
 
 		// handle step mode
@@ -118,7 +120,7 @@ func main() {
 		}
 
 		// decode instruction
-		instruction := memory[cpu.pc/4]
+		instruction := readMemory(&memory, cpu.pc/4)
 		opcode, err := GetOpcodeFromInstruction(instruction)
 
 		if err == nil {

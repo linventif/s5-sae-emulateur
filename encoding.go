@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 
-func decodeI(opcode Opcode, instruction uint32, cpu *CPUState, memory *[]uint32) string {
+func decodeI(opcode Opcode, instruction uint32, cpu *CPUState, memory *Memory) string {
 	// [31:20] imm[11:0] [19:15] rs1 [14:12] funct3 [11:7] rd [6:0] opcode
 	imm := (instruction) >> 20
 	rd := (instruction >> 7) & 0x1F
@@ -33,7 +33,7 @@ func decodeI(opcode Opcode, instruction uint32, cpu *CPUState, memory *[]uint32)
 	}
 }
 
-func decodeR(opcode Opcode, instruction uint32, cpu *CPUState, memory *[]uint32) string {
+func decodeR(opcode Opcode, instruction uint32, cpu *CPUState, memory *Memory) string {
 	// [31:25] funct7 [24:20] rs2 [19:15] rs1 [14:12] funct3 [11:7] rd [6:0] opcode
 	rd := (instruction >> 7) & 0x1F
 	rs1 := (instruction >> 15) & 0x1F
@@ -51,7 +51,7 @@ func decodeR(opcode Opcode, instruction uint32, cpu *CPUState, memory *[]uint32)
 	}
 }
 
-func decodeS(opcode Opcode, instruction uint32, cpu *CPUState, memory *[]uint32) string {
+func decodeS(opcode Opcode, instruction uint32, cpu *CPUState, memory *Memory) string {
 	// [31:25] imm[11:5] [24:20] rs2 [19:15] rs1 [14:12] funct3 [11:7] imm[4:0] [6:0] opcode
 	imm := ((instruction >> 25) << 5) | ((instruction >> 7) & 0x1F)
 	rs1 := (instruction >> 15) & 0x1F
@@ -68,7 +68,7 @@ func decodeS(opcode Opcode, instruction uint32, cpu *CPUState, memory *[]uint32)
 	}
 }
 
-func decodeU(opcode Opcode, instruction uint32, cpu *CPUState, memory *[]uint32) string {
+func decodeU(opcode Opcode, instruction uint32, cpu *CPUState, memory *Memory) string {
 	// [31:12] imm[31:12] [11:7] rd [6:0] opcode
 	imm := instruction >> 12
 	rd := (instruction >> 7) & 0x1F
@@ -82,7 +82,7 @@ func decodeU(opcode Opcode, instruction uint32, cpu *CPUState, memory *[]uint32)
 	}
 }
 
-func decodeSB(opcode Opcode, instruction uint32, cpu *CPUState, memory *[]uint32) string {
+func decodeSB(opcode Opcode, instruction uint32, cpu *CPUState, memory *Memory) string {
 	// [31] imm[12] [30:25] imm[10:5] [24:21] funct3 [20:20] imm[11] [19:12] imm[4:1] [11:8] rs2 [7:7] rs1 [6:0] opcode
 	imm := ((instruction >> 31) << 12) | ((instruction >> 25) & 0x3F) | ((instruction >> 8) & 0xF) | ((instruction>>7)&0x1)<<11
 	rs1 := (instruction >> 15) & 0x1F
@@ -99,7 +99,7 @@ func decodeSB(opcode Opcode, instruction uint32, cpu *CPUState, memory *[]uint32
 	}
 }
 
-func decodeUJ(opcode Opcode, instruction uint32, cpu *CPUState, memory *[]uint32) string {
+func decodeUJ(opcode Opcode, instruction uint32, cpu *CPUState, memory *Memory) string {
 	// [31] imm[20] [30:21] imm[10:1] [20:20] imm[11] [19:12] rd [11:8] imm[19:12] [7:7] imm[10] [6:0] opcode
 	imm := ((instruction >> 31) << 20) | ((instruction >> 21) & 0x3FF) | ((instruction>>20)&0x1)<<11 | ((instruction>>12)&0xFF)<<12
 	rd := (instruction >> 7) & 0x1F
@@ -115,7 +115,7 @@ func decodeUJ(opcode Opcode, instruction uint32, cpu *CPUState, memory *[]uint32
 
 type Encoding struct {
 	Type   string
-	Decode func(opcode Opcode, instruction uint32, cpu *CPUState, memory *[]uint32) string
+	Decode func(opcode Opcode, instruction uint32, cpu *CPUState, memory *Memory) string
 }
 
 var Encodings = map[string]Encoding{

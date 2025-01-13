@@ -39,9 +39,14 @@ func encodeBType(rs1, rs2, imm, funct3 uint32) uint32 {
 }
 
 func TestEncodings(t *testing.T) {
-	// Simuler un état CPU et une mémoire
-	cpu := &CPUState{pc: 0}
-	memory := make([]uint32, 1024) // Simuler 1 Ko de mémoire
+	var memorySize uint32 = 512 * 1024
+	var registerDefault uint32 = 0
+	var cpu CPUState
+	var memory Memory
+	var startAddress uint32 = 0
+
+	initMemory(&memory, memorySize, 0)
+	initCPUState(&cpu, startAddress, registerDefault)
 
 	tests := []struct {
 		name        string
@@ -141,7 +146,7 @@ func TestEncodings(t *testing.T) {
 
 			// Exécuter la fonction de décodage
 			opcode, _ := GetOpcodeFromInstruction(test.instruction)
-			result := encoding.Decode(opcode, test.instruction, cpu, &memory)
+			result := encoding.Decode(opcode, test.instruction, &cpu, &memory)
 
 			// Vérifier le résultat
 			if result != test.expected {
