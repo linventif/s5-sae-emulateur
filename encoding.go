@@ -4,7 +4,7 @@ import "fmt"
 
 func decodeI(opcode Opcode, instruction uint32, cpu *CPUState, memory *Memory) string {
 	// [31:20] imm[11:0] [19:15] rs1 [14:12] funct3 [11:7] rd [6:0] opcode
-	imm := (instruction) >> 20
+	imm := uint32(instruction) >> 20
 	rd := (instruction >> 7) & 0x1F
 	rs1 := (instruction >> 15) & 0x1F
 

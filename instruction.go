@@ -1,6 +1,8 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Instruction struct {
 	Name string
@@ -338,10 +340,8 @@ var Instructions = map[[4]uint32]Instruction{
 		func(cpu *CPUState, memory *Memory, args ...uint32) {
 			rs1, rs2, imm := args[0], args[1], args[2]
 			address := readRegister(cpu, rs1) + imm
-			index := address / 4
-			value := readRegister(cpu, rs2) & 0xFF
-
-			writeMemory(memory, index, value)
+			value := readRegister(cpu, rs2) & 0xFF // Mask to keep only the lower 8 bits
+			writeByte(memory, address, value)      // Write only a byte to memory
 		},
 	},
 	// SH : Store Halfword
@@ -350,19 +350,10 @@ var Instructions = map[[4]uint32]Instruction{
 		func(cpu *CPUState, memory *Memory, args ...uint32) {
 			rs1, rs2, imm := args[0], args[1], args[2]
 			address := readRegister(cpu, rs1) + imm
-			index := address / 4
-			offset := (address % 4) * 8
-			value := readRegister(cpu, rs2) & 0xFFFF
-
-			if offset <= 16 {
-				value = value << offset
-				mask := uint32(0xFFFF) << offset
-				writeMemory(memory, index, (memory.data[index] & ^mask)|value)
-			} else {
-				value = value >> (32 - offset)
-				mask := uint32(0xFFFF) >> (32 - offset)
-				writeMemory(memory, index, (memory.data[index] & ^mask)|value)
-			}
+			value := readRegister(cpu, rs2) & 0xFFFF // Mask lower 16 bits
+			//writeMemory(memory, address, value)      // Write the entire 32-bit value
+			writeHalfword(memory, address, value) // Write only a halfword to memory
+			fmt.Printf("SH: address: %d, value: %d\n", address, value)
 		},
 	},
 	// SW : Store Word
@@ -371,8 +362,8 @@ var Instructions = map[[4]uint32]Instruction{
 		func(cpu *CPUState, memory *Memory, args ...uint32) {
 			rs1, rs2, imm := args[0], args[1], args[2]
 			address := readRegister(cpu, rs1) + imm
-			index := address / 4
-			writeMemory(memory, index, readRegister(cpu, rs2))
+			value := readRegister(cpu, rs2) // Use the entire 32-bit value
+			writeWord(memory, address, value)
 		},
 	},
 	// AU-IPC

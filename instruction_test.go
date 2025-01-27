@@ -217,32 +217,32 @@ func TestInstructions(t *testing.T) {
 		{
 			name:         "SB",
 			instruction:  Instructions[[4]uint32{0b0100011, 0b000, 0, 0}],
-			args:         []uint32{1, 2, 4},               // SB x1, 4(x2) => memory[x2+4] = x1
-			defaultRegs:  map[uint32]uint32{1: 255, 2: 0}, // x1 = 255 (0xFF), x2 = 0
-			defaultMem:   map[uint32]uint32{0: 0},         // Initial memory
+			args:         []uint32{1, 2, 0}, // SB x2, 0(x1)
+			defaultRegs:  map[uint32]uint32{1: 4, 2: 0x12345678},
+			defaultMem:   map[uint32]uint32{1: 0xFFFFFFFF}, // Memory initialized with all bits set
 			expectedPC:   0,
 			expectedRegs: map[uint32]uint32{},
-			expectedMem:  map[uint32]uint32{1: 0xFF000000}, // Byte written in the 4th byte of the memory word
+			expectedMem:  map[uint32]uint32{1: 0xFFFFFF78}, // Only the last byte is stored
 		},
 		{
-			name:         "SH",
+			name:         "SH", // Store halfword, it
 			instruction:  Instructions[[4]uint32{0b0100011, 0b001, 0, 0}],
-			args:         []uint32{1, 2, 2},                  // SH x1, 2(x2) => memory[x2+2] = x1
-			defaultRegs:  map[uint32]uint32{1: 0xFFFF, 2: 0}, // x1 = 0xFFFF, x2 = 0
-			defaultMem:   map[uint32]uint32{0: 0},            // Initial memory
+			args:         []uint32{1, 2, 2},                      // SH x2, 2(x1)
+			defaultRegs:  map[uint32]uint32{1: 0, 2: 0x12345678}, // x1 = base address, x2 = value to store
+			defaultMem:   map[uint32]uint32{1: 0xFFFFFFFF},       // Memory initialized with all bits set
 			expectedPC:   0,
 			expectedRegs: map[uint32]uint32{},
-			expectedMem:  map[uint32]uint32{0: 0x00FFFF00}, // Halfword written in the 2nd and 3rd bytes
+			expectedMem:  map[uint32]uint32{0: 0x12345678}, // Only the last two bytes are stored
 		},
 		{
-			name:         "SW",
+			name:         "SW", // Store Word, it will store 4 bytes in memory starting from the address x1 + 4
 			instruction:  Instructions[[4]uint32{0b0100011, 0b010, 0, 0}],
-			args:         []uint32{1, 2, 4},                      // SW x1, 4(x2) => memory[x2+4] = x1
-			defaultRegs:  map[uint32]uint32{1: 0xDEADBEEF, 2: 0}, // x1 = 0xDEADBEEF, x2 = 0
-			defaultMem:   map[uint32]uint32{1: 0},                // Initial memory
+			args:         []uint32{1, 2, 4},                      // SW x2, 4(x1)
+			defaultRegs:  map[uint32]uint32{1: 0, 2: 0x12345678}, // x1 = base address, x2 = value to store
+			defaultMem:   map[uint32]uint32{1: 0xFFFFFFFF},       // Memory initialized with all bits set
 			expectedPC:   0,
 			expectedRegs: map[uint32]uint32{},
-			expectedMem:  map[uint32]uint32{1: 0xDEADBEEF}, // Word written starting from index 1
+			expectedMem:  map[uint32]uint32{1: 0x12345678}, // Value is stored at the base address
 		},
 		// Load
 		{
@@ -453,10 +453,12 @@ func TestInstructions(t *testing.T) {
 			}
 
 			for addr, expected := range test.expectedMem {
-				index := addr / 4
-				actual := readMemory(&memory, index)
-				if actual != expected {
-					t.Errorf("expected memory[%d]=%d, got %d", addr, expected, actual)
+				if addr >= memorySize {
+					t.Errorf("memory address %d out of bounds", addr)
+					continue
+				}
+				if readMemory(&memory, addr) != expected {
+					t.Errorf("expected memory[%d]=%d, got memory[%d]=%d", addr, expected, addr, readMemory(&memory, addr))
 				}
 			}
 		})
